@@ -233,7 +233,7 @@ public class OcorrenciaBO {
                     o.getStatus().getDescricao(),
                     o.getDataResolucao(),
                     o.getQuantidadeApoios(),
-                    apoiadas.contains(o.getId()),
+                    o.getId() != null && apoiadas.contains(o.getId()),
                     minha,
                     minha && o.isAberta(),
                     RiscoResponse.de(item.risco()));
