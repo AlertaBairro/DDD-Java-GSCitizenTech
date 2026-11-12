@@ -1,0 +1,6 @@
+# Normaliza finais de linha; scripts de shell e Dockerfile sempre com LF
+* text=auto
+mvnw text eol=lf
+*.sh text eol=lf
+Dockerfile text eol=lf
+mvnw.cmd text eol=crlf

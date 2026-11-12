@@ -1,0 +1,25 @@
+# =====================================================================
+# Render Blueprint - AlertaBairro API
+# Os valores secretos (usuario e senha do Oracle) NAO ficam aqui:
+# "sync: false" faz o Render pedir o valor no painel ao criar o servico.
+# =====================================================================
+services:
+  - type: web
+    name: alertabairro-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: DB_URL
+        value: jdbc:oracle:thin:@oracle.fiap.com.br:1521:ORCL
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: TZ
+        value: America/Sao_Paulo
