@@ -2,39 +2,96 @@
 ### AlertaBairro API - exemplos de todas as requisicoes
 ### Use com a extensao "REST Client" (VS Code) ou o HTTP Client do IntelliJ.
 ### Troque @baseUrl pela URL do Render para testar o deploy.
-### Ids de usuario do seed (podem variar): rode os logins e ajuste abaixo.
+###
+### Antes: rode no Oracle 01_ddl.sql, 02_dml.sql e 03_api_complemento.sql.
+### Ids dos usuarios de teste num banco recem-criado (confira no login):
+###   morador = 11, agente = 12, gestor = 13
+### Ocorrencia ABERTA de demonstracao (03_api_complemento.sql) = 9
+### Ponto alagado ativo do DML = 6 (alerta 6)
 ### =====================================================================
 
 @baseUrl = http://localhost:8080
 # @baseUrl = https://SEU-SERVICO.onrender.com
 
-@morador = 1
-@agente = 2
-@gestor = 3
-@comunidade = 4
+@morador = 11
+@agente = 12
+@gestor = 13
 
 ### ---------------------------------------------------------------------
-### Health check e referencias (publicos)
+### Health check, bairros e tipos (publicos)
 ### ---------------------------------------------------------------------
 
 GET {{baseUrl}}/api/health
 
 ###
 
-GET {{baseUrl}}/api/referencias
+GET {{baseUrl}}/api/bairros
+
+###
+
+GET {{baseUrl}}/api/bairros/1
+
+###
+
+GET {{baseUrl}}/api/tipos-ocorrencia
+
+###
+
+GET {{baseUrl}}/api/tipos-ocorrencia/1
 
 ### ---------------------------------------------------------------------
-### Autenticacao
+### Usuarios: cadastro (publico) e login
 ### ---------------------------------------------------------------------
 
-# Login do morador de exemplo
+# Cadastro de um novo morador (201)
+POST {{baseUrl}}/api/usuarios
+Content-Type: application/json
+
+{
+  "nome": "Maria da Silva",
+  "email": "maria.silva@email.com",
+  "senha": "1234",
+  "telefone": "11988887777",
+  "bairroId": 1,
+  "perfil": "MORADOR"
+}
+
+###
+
+# Erro 409: e-mail ja cadastrado
+POST {{baseUrl}}/api/usuarios
+Content-Type: application/json
+
+{
+  "nome": "Outro Morador",
+  "email": "morador@alertabairro.com",
+  "senha": "1234",
+  "bairroId": 1,
+  "perfil": "MORADOR"
+}
+
+###
+
+# Erro 400: campos invalidos (detalhes por campo)
+POST {{baseUrl}}/api/usuarios
+Content-Type: application/json
+
+{
+  "nome": "",
+  "email": "email-invalido",
+  "senha": "1",
+  "perfil": "MORADOR"
+}
+
+###
+
+# Login do morador de teste
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
   "email": "morador@alertabairro.com",
-  "senha": "morador123",
-  "perfil": "MORADOR"
+  "senha": "morador123"
 }
 
 ###
@@ -45,8 +102,7 @@ Content-Type: application/json
 
 {
   "email": "agente@alertabairro.com",
-  "senha": "agente123",
-  "perfil": "AGENTE"
+  "senha": "agente123"
 }
 
 ###
@@ -57,36 +113,22 @@ Content-Type: application/json
 
 {
   "email": "gestor@alertabairro.com",
-  "senha": "gestor123",
-  "perfil": "GESTOR"
+  "senha": "gestor123"
 }
 
 ###
 
-# E-mail novo: cria a conta (nome derivado: "Maria Da Silva")
+# Erro 401: senha errada (o login nao cria contas)
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
-  "email": "maria.da-silva@gmail.com",
-  "senha": "1234",
-  "perfil": "MORADOR"
-}
-
-###
-
-# Erro 400: e-mail invalido e senha vazia
-POST {{baseUrl}}/api/auth/login
-Content-Type: application/json
-
-{
-  "email": "email-invalido",
-  "senha": "",
-  "perfil": "MORADOR"
+  "email": "morador@alertabairro.com",
+  "senha": "errada"
 }
 
 ### ---------------------------------------------------------------------
-### Usuarios
+### Propria conta
 ### ---------------------------------------------------------------------
 
 GET {{baseUrl}}/api/usuarios/{{morador}}
@@ -99,25 +141,28 @@ X-Usuario-Id: {{morador}}
 Content-Type: application/json
 
 {
-  "nome": "Morador do Jardim São Paulo"
+  "nome": "Morador do Jardim São Paulo",
+  "telefone": "11900000001",
+  "bairroId": 1
 }
 
 ###
 
-# Erro 403: tentar alterar a conta de outro usuario
+# Erro 403: alterar a conta de outro usuario
 PUT {{baseUrl}}/api/usuarios/{{agente}}
 X-Usuario-Id: {{morador}}
 Content-Type: application/json
 
 {
-  "nome": "Outro nome"
+  "nome": "Outro nome",
+  "bairroId": 1
 }
 
 ###
 
-# Exclui a propria conta (use o id da conta criada no login da Maria)
-DELETE {{baseUrl}}/api/usuarios/5
-X-Usuario-Id: 5
+# Exclusao logica (st_ativo = 'N') - use o id da conta criada no cadastro da Maria
+DELETE {{baseUrl}}/api/usuarios/14
+X-Usuario-Id: 14
 
 ### ---------------------------------------------------------------------
 ### Ocorrencias - consultas
@@ -128,13 +173,18 @@ X-Usuario-Id: {{morador}}
 
 ###
 
-# Filtros: bairro (id), tipo (codigo) e status
-GET {{baseUrl}}/api/ocorrencias?bairro=2&tipo=BUEIRO&status=RECEBIDA
+# Filtros: bairro (id), tipo (id) e status
+GET {{baseUrl}}/api/ocorrencias?bairro=1&tipo=1&status=ABERTA
 X-Usuario-Id: {{morador}}
 
 ###
 
 GET {{baseUrl}}/api/ocorrencias/1
+X-Usuario-Id: {{morador}}
+
+###
+
+GET {{baseUrl}}/api/ocorrencias/1/historico
 X-Usuario-Id: {{morador}}
 
 ###
@@ -149,46 +199,52 @@ GET {{baseUrl}}/api/ocorrencias/99999
 X-Usuario-Id: {{morador}}
 
 ### ---------------------------------------------------------------------
-### Ocorrencias - registro, edicao e exclusao (MORADOR)
+### Ocorrencias - registro, edicao e exclusao (MORADOR, autor, so ABERTA)
 ### ---------------------------------------------------------------------
 
+# Registro (201): nasce ABERTA com nivelRisco = peso do tipo (Lixo acumulado = 3)
 POST {{baseUrl}}/api/ocorrencias
 X-Usuario-Id: {{morador}}
 Content-Type: application/json
 
 {
-  "bairroId": 2,
-  "tipo": "ALAGADO",
-  "observacoes": "Água acumulada na esquina da estação.",
-  "latitude": -23.4926,
-  "longitude": -46.6170
+  "tipoId": 3,
+  "bairroId": 1,
+  "enderecoReferencia": "Rua Dr. Zuquim, 950",
+  "latitude": -23.4931,
+  "longitude": -46.6178,
+  "descricao": "Sacos de lixo sobre a boca de lobo",
+  "urlFoto": "https://alertabairro.app/fotos/nova.jpg"
 }
 
 ###
 
-# Sem localizacao
+# Erro 400: latitude fora da faixa e endereco vazio
 POST {{baseUrl}}/api/ocorrencias
 X-Usuario-Id: {{morador}}
 Content-Type: application/json
 
 {
+  "tipoId": 3,
   "bairroId": 1,
-  "tipo": "LIXO",
-  "observacoes": "Lixo acumulado na praça."
-}
-
-###
-
-# Erro 400: latitude fora da faixa
-POST {{baseUrl}}/api/ocorrencias
-X-Usuario-Id: {{morador}}
-Content-Type: application/json
-
-{
-  "bairroId": 1,
-  "tipo": "LIXO",
+  "enderecoReferencia": "",
   "latitude": -95,
   "longitude": -46.6
+}
+
+###
+
+# Erro 422: tipo inexistente
+POST {{baseUrl}}/api/ocorrencias
+X-Usuario-Id: {{morador}}
+Content-Type: application/json
+
+{
+  "tipoId": 99,
+  "bairroId": 1,
+  "enderecoReferencia": "Rua Dr. Zuquim, 950",
+  "latitude": -23.4931,
+  "longitude": -46.6178
 }
 
 ###
@@ -199,68 +255,77 @@ X-Usuario-Id: {{agente}}
 Content-Type: application/json
 
 {
+  "tipoId": 3,
   "bairroId": 1,
-  "tipo": "LIXO"
+  "enderecoReferencia": "Rua Dr. Zuquim, 950",
+  "latitude": -23.4931,
+  "longitude": -46.6178
 }
 
 ###
 
-# Editar (troque 7 pelo id criado acima; so o autor e so enquanto RECEBIDA)
-PUT {{baseUrl}}/api/ocorrencias/7
+# Editar (troque 10 pelo id criado acima): o risco acompanha o novo tipo (Bueiro = 5)
+PUT {{baseUrl}}/api/ocorrencias/10
 X-Usuario-Id: {{morador}}
 Content-Type: application/json
 
 {
-  "bairroId": 2,
-  "tipo": "BUEIRO",
-  "observacoes": "Na verdade é o bueiro que está entupido.",
-  "latitude": -23.4926,
-  "longitude": -46.6170
+  "tipoId": 1,
+  "bairroId": 1,
+  "enderecoReferencia": "Rua Dr. Zuquim, 950",
+  "latitude": -23.4931,
+  "longitude": -46.6178,
+  "descricao": "Na verdade é o bueiro que está entupido"
 }
 
 ###
 
-# Erro 403: morador que nao e o autor tentando editar a ocorrencia 1
-PUT {{baseUrl}}/api/ocorrencias/1
+# Erro 403: o morador de teste nao e autor da ocorrencia 9
+PUT {{baseUrl}}/api/ocorrencias/9
 X-Usuario-Id: {{morador}}
 Content-Type: application/json
 
 {
-  "bairroId": 2,
-  "tipo": "BUEIRO"
+  "tipoId": 1,
+  "bairroId": 1,
+  "enderecoReferencia": "Outro endereço",
+  "latitude": -23.4924,
+  "longitude": -46.6169
 }
 
 ###
 
-DELETE {{baseUrl}}/api/ocorrencias/8
+# Excluir (204): remove apoios + historico + ocorrencia na mesma transacao
+DELETE {{baseUrl}}/api/ocorrencias/10
 X-Usuario-Id: {{morador}}
 
 ### ---------------------------------------------------------------------
 ### Apoios (MORADOR)
 ### ---------------------------------------------------------------------
 
-POST {{baseUrl}}/api/ocorrencias/1/apoios
+# Apoiar a ocorrencia de demonstracao (autora: usuaria 2)
+POST {{baseUrl}}/api/ocorrencias/9/apoios
 X-Usuario-Id: {{morador}}
 
 ###
 
 # Erro 409: apoiar de novo
+POST {{baseUrl}}/api/ocorrencias/9/apoios
+X-Usuario-Id: {{morador}}
+
+###
+
+# Erro 422: apoiar ocorrencia RESOLVIDA (ocorrencia 1 do DML)
 POST {{baseUrl}}/api/ocorrencias/1/apoios
 X-Usuario-Id: {{morador}}
 
 ###
 
-# Erro 422: apoiar ocorrencia resolvida (ocorrencia 5 do seed)
-POST {{baseUrl}}/api/ocorrencias/5/apoios
-X-Usuario-Id: {{morador}}
-
-###
-
-DELETE {{baseUrl}}/api/ocorrencias/1/apoios
+DELETE {{baseUrl}}/api/ocorrencias/9/apoios
 X-Usuario-Id: {{morador}}
 
 ### ---------------------------------------------------------------------
-### Agente de zeladoria
+### Agente de zeladoria: fila priorizada, status e historico
 ### ---------------------------------------------------------------------
 
 GET {{baseUrl}}/api/ocorrencias/priorizadas
@@ -268,22 +333,51 @@ X-Usuario-Id: {{agente}}
 
 ###
 
-GET {{baseUrl}}/api/ocorrencias/priorizadas?bairro=2&status=RECEBIDA
+GET {{baseUrl}}/api/ocorrencias/priorizadas?bairro=1&status=ABERTA
 X-Usuario-Id: {{agente}}
 
 ###
 
-PUT {{baseUrl}}/api/ocorrencias/1/status
+PUT {{baseUrl}}/api/ocorrencias/9/status
 X-Usuario-Id: {{agente}}
 Content-Type: application/json
 
 {
-  "status": "EM_ATENDIMENTO"
+  "status": "RECEBIDA",
+  "observacao": "Ocorrência triada pela zeladoria"
 }
 
 ###
 
-PUT {{baseUrl}}/api/ocorrencias/1/status
+PUT {{baseUrl}}/api/ocorrencias/9/status
+X-Usuario-Id: {{agente}}
+Content-Type: application/json
+
+{
+  "status": "RESOLVIDA",
+  "observacao": "Bueiro desobstruído"
+}
+
+###
+
+GET {{baseUrl}}/api/ocorrencias/9/historico
+X-Usuario-Id: {{agente}}
+
+###
+
+# Erro 422: nao e possivel voltar para ABERTA
+PUT {{baseUrl}}/api/ocorrencias/9/status
+X-Usuario-Id: {{agente}}
+Content-Type: application/json
+
+{
+  "status": "ABERTA"
+}
+
+###
+
+# Erro 422: mesmo status atual
+PUT {{baseUrl}}/api/ocorrencias/9/status
 X-Usuario-Id: {{agente}}
 Content-Type: application/json
 
@@ -294,49 +388,149 @@ Content-Type: application/json
 ###
 
 # Erro 403: morador nao altera status
-PUT {{baseUrl}}/api/ocorrencias/1/status
+PUT {{baseUrl}}/api/ocorrencias/9/status
 X-Usuario-Id: {{morador}}
 Content-Type: application/json
 
 {
-  "status": "RESOLVIDA"
+  "status": "EM_ATENDIMENTO"
 }
 
 ### ---------------------------------------------------------------------
-### Alertas, zonas de risco e rota segura
+### Pontos alagados (reporte gera alerta + destinatarios)
 ### ---------------------------------------------------------------------
 
+GET {{baseUrl}}/api/pontos-alagados
+X-Usuario-Id: {{morador}}
+
+###
+
+GET {{baseUrl}}/api/pontos-alagados?ativos=true
+X-Usuario-Id: {{morador}}
+
+###
+
+GET {{baseUrl}}/api/pontos-alagados/6
+X-Usuario-Id: {{morador}}
+
+###
+
+# Reporte (201): JOELHO -> alerta com raio de 500 m para os usuarios ativos do bairro 1
+POST {{baseUrl}}/api/pontos-alagados
+X-Usuario-Id: {{morador}}
+Content-Type: application/json
+
+{
+  "bairroId": 1,
+  "enderecoReferencia": "Rua Dr. Zuquim, 900",
+  "latitude": -23.4935,
+  "longitude": -46.6180,
+  "nivelAgua": "JOELHO"
+}
+
+###
+
+# Erro 400: nivel da agua invalido
+POST {{baseUrl}}/api/pontos-alagados
+X-Usuario-Id: {{morador}}
+Content-Type: application/json
+
+{
+  "bairroId": 1,
+  "enderecoReferencia": "Rua Dr. Zuquim, 900",
+  "latitude": -23.4935,
+  "longitude": -46.6180,
+  "nivelAgua": "ALTO"
+}
+
+###
+
+# Encerrar (AGENTE ou GESTOR) - troque 7 pelo id criado acima
+PUT {{baseUrl}}/api/pontos-alagados/7/encerrar
+X-Usuario-Id: {{gestor}}
+
+###
+
+# Erro 403: morador nao encerra ponto alagado
+PUT {{baseUrl}}/api/pontos-alagados/6/encerrar
+X-Usuario-Id: {{morador}}
+
+### ---------------------------------------------------------------------
+### Alertas
+### ---------------------------------------------------------------------
+
+# Alertas ativos (de pontos alagados ainda ativos)
 GET {{baseUrl}}/api/alertas
 X-Usuario-Id: {{morador}}
 
 ###
+
+# Alertas recebidos pelo usuario (o morador de teste recebe o alerta 6)
+GET {{baseUrl}}/api/alertas/meus
+X-Usuario-Id: {{morador}}
+
+###
+
+PUT {{baseUrl}}/api/alertas/6/leitura
+X-Usuario-Id: {{morador}}
+
+###
+
+# Erro 404: alerta que o usuario nao recebeu
+PUT {{baseUrl}}/api/alertas/1/leitura
+X-Usuario-Id: {{morador}}
+
+### ---------------------------------------------------------------------
+### Zonas de risco e rota segura
+### ---------------------------------------------------------------------
 
 GET {{baseUrl}}/api/zonas-de-risco
 X-Usuario-Id: {{morador}}
 
 ###
 
-# Rota 1 passa pelo ponto alagado do seed; Rota 2 desvia ~200 m a leste
+# A primeira rota (padrao) passa pelo ponto alagado 6; o desvio fica ~200 m a leste.
+# Resultado: indiceMaisSegura = 1 e pontosEvitados = 1 (gravado em T_AB_CONSULTA_ROTA)
 POST {{baseUrl}}/api/rotas/avaliar
 X-Usuario-Id: {{morador}}
 Content-Type: application/json
 
 {
+  "origem": { "descricao": "Rua Dr. Zuquim, 900", "latitude": -23.4935, "longitude": -46.6180 },
+  "destino": { "descricao": "Estação Jardim São Paulo-Ayrton Senna", "latitude": -23.4910, "longitude": -46.6160 },
   "rotas": [
     {
-      "nome": "Rota 1",
-      "coordenadas": [[-23.4937, -46.6168], [-23.4917, -46.6168]],
+      "nome": "Pela avenida",
+      "coordenadas": [[-23.4932, -46.6166], [-23.4912, -46.6166]],
       "duracaoSegundos": 120,
       "distanciaMetros": 220
     },
     {
-      "nome": "Rota 2",
-      "coordenadas": [[-23.4937, -46.6148], [-23.4917, -46.6148]],
+      "nome": "Desvio",
+      "coordenadas": [[-23.4932, -46.6146], [-23.4912, -46.6146]],
       "duracaoSegundos": 180,
       "distanciaMetros": 300
     }
   ]
 }
+
+###
+
+# Sem rotas candidatas: consulta gravada com st_rota_calculada = 'N'
+POST {{baseUrl}}/api/rotas/avaliar
+X-Usuario-Id: {{morador}}
+Content-Type: application/json
+
+{
+  "origem": { "descricao": "Av. Nova Cantareira, 1500", "latitude": -23.4760, "longitude": -46.6010 },
+  "destino": { "descricao": "Estação Tucuruvi", "latitude": -23.4800, "longitude": -46.6035 },
+  "rotas": []
+}
+
+###
+
+GET {{baseUrl}}/api/rotas/minhas
+X-Usuario-Id: {{morador}}
 
 ### ---------------------------------------------------------------------
 ### Gestor da subprefeitura
