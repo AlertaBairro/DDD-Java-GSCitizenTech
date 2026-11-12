@@ -1,0 +1,352 @@
+### =====================================================================
+### AlertaBairro API - exemplos de todas as requisicoes
+### Use com a extensao "REST Client" (VS Code) ou o HTTP Client do IntelliJ.
+### Troque @baseUrl pela URL do Render para testar o deploy.
+### Ids de usuario do seed (podem variar): rode os logins e ajuste abaixo.
+### =====================================================================
+
+@baseUrl = http://localhost:8080
+# @baseUrl = https://SEU-SERVICO.onrender.com
+
+@morador = 1
+@agente = 2
+@gestor = 3
+@comunidade = 4
+
+### ---------------------------------------------------------------------
+### Health check e referencias (publicos)
+### ---------------------------------------------------------------------
+
+GET {{baseUrl}}/api/health
+
+###
+
+GET {{baseUrl}}/api/referencias
+
+### ---------------------------------------------------------------------
+### Autenticacao
+### ---------------------------------------------------------------------
+
+# Login do morador de exemplo
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "morador@alertabairro.com",
+  "senha": "morador123",
+  "perfil": "MORADOR"
+}
+
+###
+
+# Login do agente de zeladoria
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "agente@alertabairro.com",
+  "senha": "agente123",
+  "perfil": "AGENTE"
+}
+
+###
+
+# Login do gestor da subprefeitura
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "gestor@alertabairro.com",
+  "senha": "gestor123",
+  "perfil": "GESTOR"
+}
+
+###
+
+# E-mail novo: cria a conta (nome derivado: "Maria Da Silva")
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "maria.da-silva@gmail.com",
+  "senha": "1234",
+  "perfil": "MORADOR"
+}
+
+###
+
+# Erro 400: e-mail invalido e senha vazia
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "email-invalido",
+  "senha": "",
+  "perfil": "MORADOR"
+}
+
+### ---------------------------------------------------------------------
+### Usuarios
+### ---------------------------------------------------------------------
+
+GET {{baseUrl}}/api/usuarios/{{morador}}
+X-Usuario-Id: {{morador}}
+
+###
+
+PUT {{baseUrl}}/api/usuarios/{{morador}}
+X-Usuario-Id: {{morador}}
+Content-Type: application/json
+
+{
+  "nome": "Morador do Jardim São Paulo"
+}
+
+###
+
+# Erro 403: tentar alterar a conta de outro usuario
+PUT {{baseUrl}}/api/usuarios/{{agente}}
+X-Usuario-Id: {{morador}}
+Content-Type: application/json
+
+{
+  "nome": "Outro nome"
+}
+
+###
+
+# Exclui a propria conta (use o id da conta criada no login da Maria)
+DELETE {{baseUrl}}/api/usuarios/5
+X-Usuario-Id: 5
+
+### ---------------------------------------------------------------------
+### Ocorrencias - consultas
+### ---------------------------------------------------------------------
+
+GET {{baseUrl}}/api/ocorrencias
+X-Usuario-Id: {{morador}}
+
+###
+
+# Filtros: bairro (id), tipo (codigo) e status
+GET {{baseUrl}}/api/ocorrencias?bairro=2&tipo=BUEIRO&status=RECEBIDA
+X-Usuario-Id: {{morador}}
+
+###
+
+GET {{baseUrl}}/api/ocorrencias/1
+X-Usuario-Id: {{morador}}
+
+###
+
+# Erro 401: sem o header X-Usuario-Id
+GET {{baseUrl}}/api/ocorrencias
+
+###
+
+# Erro 404: ocorrencia inexistente
+GET {{baseUrl}}/api/ocorrencias/99999
+X-Usuario-Id: {{morador}}
+
+### ---------------------------------------------------------------------
+### Ocorrencias - registro, edicao e exclusao (MORADOR)
+### ---------------------------------------------------------------------
+
+POST {{baseUrl}}/api/ocorrencias
+X-Usuario-Id: {{morador}}
+Content-Type: application/json
+
+{
+  "bairroId": 2,
+  "tipo": "ALAGADO",
+  "observacoes": "Água acumulada na esquina da estação.",
+  "latitude": -23.4926,
+  "longitude": -46.6170
+}
+
+###
+
+# Sem localizacao
+POST {{baseUrl}}/api/ocorrencias
+X-Usuario-Id: {{morador}}
+Content-Type: application/json
+
+{
+  "bairroId": 1,
+  "tipo": "LIXO",
+  "observacoes": "Lixo acumulado na praça."
+}
+
+###
+
+# Erro 400: latitude fora da faixa
+POST {{baseUrl}}/api/ocorrencias
+X-Usuario-Id: {{morador}}
+Content-Type: application/json
+
+{
+  "bairroId": 1,
+  "tipo": "LIXO",
+  "latitude": -95,
+  "longitude": -46.6
+}
+
+###
+
+# Erro 403: agente nao registra ocorrencia
+POST {{baseUrl}}/api/ocorrencias
+X-Usuario-Id: {{agente}}
+Content-Type: application/json
+
+{
+  "bairroId": 1,
+  "tipo": "LIXO"
+}
+
+###
+
+# Editar (troque 7 pelo id criado acima; so o autor e so enquanto RECEBIDA)
+PUT {{baseUrl}}/api/ocorrencias/7
+X-Usuario-Id: {{morador}}
+Content-Type: application/json
+
+{
+  "bairroId": 2,
+  "tipo": "BUEIRO",
+  "observacoes": "Na verdade é o bueiro que está entupido.",
+  "latitude": -23.4926,
+  "longitude": -46.6170
+}
+
+###
+
+# Erro 403: morador que nao e o autor tentando editar a ocorrencia 1
+PUT {{baseUrl}}/api/ocorrencias/1
+X-Usuario-Id: {{morador}}
+Content-Type: application/json
+
+{
+  "bairroId": 2,
+  "tipo": "BUEIRO"
+}
+
+###
+
+DELETE {{baseUrl}}/api/ocorrencias/8
+X-Usuario-Id: {{morador}}
+
+### ---------------------------------------------------------------------
+### Apoios (MORADOR)
+### ---------------------------------------------------------------------
+
+POST {{baseUrl}}/api/ocorrencias/1/apoios
+X-Usuario-Id: {{morador}}
+
+###
+
+# Erro 409: apoiar de novo
+POST {{baseUrl}}/api/ocorrencias/1/apoios
+X-Usuario-Id: {{morador}}
+
+###
+
+# Erro 422: apoiar ocorrencia resolvida (ocorrencia 5 do seed)
+POST {{baseUrl}}/api/ocorrencias/5/apoios
+X-Usuario-Id: {{morador}}
+
+###
+
+DELETE {{baseUrl}}/api/ocorrencias/1/apoios
+X-Usuario-Id: {{morador}}
+
+### ---------------------------------------------------------------------
+### Agente de zeladoria
+### ---------------------------------------------------------------------
+
+GET {{baseUrl}}/api/ocorrencias/priorizadas
+X-Usuario-Id: {{agente}}
+
+###
+
+GET {{baseUrl}}/api/ocorrencias/priorizadas?bairro=2&status=RECEBIDA
+X-Usuario-Id: {{agente}}
+
+###
+
+PUT {{baseUrl}}/api/ocorrencias/1/status
+X-Usuario-Id: {{agente}}
+Content-Type: application/json
+
+{
+  "status": "EM_ATENDIMENTO"
+}
+
+###
+
+PUT {{baseUrl}}/api/ocorrencias/1/status
+X-Usuario-Id: {{agente}}
+Content-Type: application/json
+
+{
+  "status": "RESOLVIDA"
+}
+
+###
+
+# Erro 403: morador nao altera status
+PUT {{baseUrl}}/api/ocorrencias/1/status
+X-Usuario-Id: {{morador}}
+Content-Type: application/json
+
+{
+  "status": "RESOLVIDA"
+}
+
+### ---------------------------------------------------------------------
+### Alertas, zonas de risco e rota segura
+### ---------------------------------------------------------------------
+
+GET {{baseUrl}}/api/alertas
+X-Usuario-Id: {{morador}}
+
+###
+
+GET {{baseUrl}}/api/zonas-de-risco
+X-Usuario-Id: {{morador}}
+
+###
+
+# Rota 1 passa pelo ponto alagado do seed; Rota 2 desvia ~200 m a leste
+POST {{baseUrl}}/api/rotas/avaliar
+X-Usuario-Id: {{morador}}
+Content-Type: application/json
+
+{
+  "rotas": [
+    {
+      "nome": "Rota 1",
+      "coordenadas": [[-23.4937, -46.6168], [-23.4917, -46.6168]],
+      "duracaoSegundos": 120,
+      "distanciaMetros": 220
+    },
+    {
+      "nome": "Rota 2",
+      "coordenadas": [[-23.4937, -46.6148], [-23.4917, -46.6148]],
+      "duracaoSegundos": 180,
+      "distanciaMetros": 300
+    }
+  ]
+}
+
+### ---------------------------------------------------------------------
+### Gestor da subprefeitura
+### ---------------------------------------------------------------------
+
+GET {{baseUrl}}/api/indicadores
+X-Usuario-Id: {{gestor}}
+
+###
+
+# Erro 403: morador nao ve indicadores
+GET {{baseUrl}}/api/indicadores
+X-Usuario-Id: {{morador}}
