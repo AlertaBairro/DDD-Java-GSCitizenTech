@@ -15,18 +15,20 @@ public class OpenApiConfig {
     public OpenAPI alertaBairroOpenApi() {
         return new OpenAPI().info(new Info()
                 .title("AlertaBairro API")
-                .version("1.0.0")
+                .version("2.0.0")
                 .description("""
                         API REST do AlertaBairro (Global Solution 2026.2 - FIAP - CitizenTech).
                         "Informe. Previna. Desvie."
 
-                        Zeladoria do bairro + alerta de alagamento + rota segura.
+                        Zeladoria do bairro + alerta de alagamento + rota segura, sobre o modelo de dados
+                        do grupo (10 tabelas T_AB_* no Oracle).
 
                         Como testar: faça POST /api/auth/login e envie o id devolvido no header
-                        X-Usuario-Id nas demais requisições. Usuários de exemplo:
+                        X-Usuario-Id nas demais requisições. Usuários de teste (script 03_api_complemento.sql):
                         morador@alertabairro.com / morador123 (MORADOR),
                         agente@alertabairro.com / agente123 (AGENTE),
                         gestor@alertabairro.com / gestor123 (GESTOR).
+                        Novos usuários podem ser criados em POST /api/usuarios.
                         """));
     }
 }
