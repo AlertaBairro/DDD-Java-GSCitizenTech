@@ -1,5 +1,6 @@
 package br.com.fiap.alertabairro.dao;
 
+import br.com.fiap.alertabairro.exception.ConflitoException;
 import br.com.fiap.alertabairro.exception.PersistenciaException;
 import br.com.fiap.alertabairro.model.Apoio;
 import org.springframework.stereotype.Repository;
@@ -8,6 +9,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -42,6 +44,12 @@ public class ApoioDAO {
                 }
             }
             return apoio;
+        } catch (SQLIntegrityConstraintViolationException e) {
+            // ORA-00001: violacao da UNIQUE (usuario, ocorrencia) em requisicoes simultaneas
+            if (e.getErrorCode() == 1) {
+                throw new ConflitoException("Você já apoiou esta ocorrência.");
+            }
+            throw new PersistenciaException("Erro ao registrar apoio.", e);
         } catch (SQLException e) {
             throw new PersistenciaException("Erro ao registrar apoio.", e);
         }
