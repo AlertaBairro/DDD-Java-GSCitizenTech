@@ -1,7 +1,7 @@
 package br.com.fiap.alertabairro.model;
 
 /**
- * Nivel de risco calculado para uma ocorrencia.
+ * Nivel de prioridade calculado para a fila do agente (nao persistido).
  * ALTO: pontuacao >= 16 | MEDIO: pontuacao >= 10 | BAIXO: abaixo de 10.
  */
 public enum NivelRisco {

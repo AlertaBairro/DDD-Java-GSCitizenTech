@@ -1,64 +1,77 @@
 package br.com.fiap.alertabairro.model;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * Ocorrencia de zeladoria registrada por um morador (tabela AB_OCORRENCIA).
+ * Ocorrencia de zeladoria registrada por um morador (tabela T_AB_OCORRENCIA).
+ *
+ * Regras do CHECK CK_AB_OCORRENCIA_RESOL: uma ocorrencia RESOLVIDA tem data
+ * de resolucao (maior ou igual a de registro); qualquer outro status tem a
+ * data de resolucao nula. O metodo {@link #alterarStatus} mantem isso.
  */
 public class Ocorrencia {
 
-    public static final int TAMANHO_MAXIMO_OBSERVACOES = 400;
+    public static final int TAMANHO_MAXIMO_DESCRICAO = 500;
+    public static final int TAMANHO_MAXIMO_ENDERECO = 150;
+    public static final int TAMANHO_MAXIMO_URL_FOTO = 300;
 
+    /** id_ocorrencia NUMBER(10) - PK (sequence SQ_AB_OCORRENCIA) */
     private Long id;
-    private Bairro bairro;
-    private TipoProblema tipo;
-    private Usuario usuario;
-    private String observacoes;
-    private OffsetDateTime dataCriacao;
+    /** id_usuario NUMBER(10) - FK para T_AB_USUARIO (autor) */
+    private Long idUsuario;
+    /** id_tipo_ocorrencia NUMBER(3) - FK para T_AB_TIPO_OCORRENCIA */
+    private Long idTipoOcorrencia;
+    /** id_bairro NUMBER(5) - FK para T_AB_BAIRRO */
+    private Long idBairro;
+    /** ds_ocorrencia VARCHAR2(500) - opcional */
+    private String descricao;
+    /** ds_endereco_ref VARCHAR2(150) */
+    private String enderecoReferencia;
+    /** nr_latitude NUMBER(9,6) */
+    private double latitude;
+    /** nr_longitude NUMBER(9,6) */
+    private double longitude;
+    /** ds_url_foto VARCHAR2(300) - opcional */
+    private String urlFoto;
+    /** dt_registro DATE */
+    private LocalDateTime dataRegistro;
+    /** nr_nivel_risco NUMBER(1), de 1 a 5 */
+    private int nivelRisco;
+    /** st_ocorrencia VARCHAR2(15) */
+    private StatusOcorrencia status = StatusOcorrencia.ABERTA;
+    /** dt_resolucao DATE - preenchida somente quando RESOLVIDA */
+    private LocalDateTime dataResolucao;
+
+    /** Quantidade de apoios, contada em T_AB_APOIO (valor derivado, nao e coluna). */
     private int quantidadeApoios;
-    private StatusOcorrencia status;
-    private OffsetDateTime dataResolucao;
-    private Double latitude;
-    private Double longitude;
 
     public Ocorrencia() {
     }
 
-    public Ocorrencia(Long id, Bairro bairro, TipoProblema tipo, Usuario usuario, String observacoes,
-                      OffsetDateTime dataCriacao, int quantidadeApoios, StatusOcorrencia status,
-                      OffsetDateTime dataResolucao, Double latitude, Double longitude) {
-        this.id = id;
-        this.bairro = bairro;
-        this.tipo = tipo;
-        this.usuario = usuario;
-        this.observacoes = observacoes;
-        this.dataCriacao = dataCriacao;
-        this.quantidadeApoios = quantidadeApoios;
-        this.status = status;
-        this.dataResolucao = dataResolucao;
-        this.latitude = latitude;
-        this.longitude = longitude;
+    public boolean isAberta() {
+        return status == StatusOcorrencia.ABERTA;
     }
 
     public boolean isResolvida() {
         return status == StatusOcorrencia.RESOLVIDA;
     }
 
-    public boolean isRecebida() {
-        return status == StatusOcorrencia.RECEBIDA;
+    public boolean foiRegistradaPor(Long idUsuario) {
+        return this.idUsuario != null && this.idUsuario.equals(idUsuario);
     }
 
-    public boolean possuiLocalizacao() {
-        return latitude != null && longitude != null;
-    }
-
-    public boolean isAlagamento() {
-        return tipo != null && (tipo.isAlagamento() || TipoProblema.ALAGADO.equals(tipo.getCodigo()));
-    }
-
-    public boolean foiRegistradaPor(Long usuarioId) {
-        return usuario != null && Objects.equals(usuario.getId(), usuarioId);
+    /**
+     * Muda o status mantendo a coerencia com a data de resolucao:
+     * ao ir para RESOLVIDA preenche a data; ao sair de RESOLVIDA, limpa.
+     */
+    public void alterarStatus(StatusOcorrencia novoStatus, LocalDateTime agora) {
+        this.status = novoStatus;
+        if (novoStatus == StatusOcorrencia.RESOLVIDA) {
+            this.dataResolucao = (dataRegistro != null && agora.isBefore(dataRegistro)) ? dataRegistro : agora;
+        } else {
+            this.dataResolucao = null;
+        }
     }
 
     public Long getId() {
@@ -69,52 +82,84 @@ public class Ocorrencia {
         this.id = id;
     }
 
-    public Bairro getBairro() {
-        return bairro;
+    public Long getIdUsuario() {
+        return idUsuario;
     }
 
-    public void setBairro(Bairro bairro) {
-        this.bairro = bairro;
+    public void setIdUsuario(Long idUsuario) {
+        this.idUsuario = idUsuario;
     }
 
-    public TipoProblema getTipo() {
-        return tipo;
+    public Long getIdTipoOcorrencia() {
+        return idTipoOcorrencia;
     }
 
-    public void setTipo(TipoProblema tipo) {
-        this.tipo = tipo;
+    public void setIdTipoOcorrencia(Long idTipoOcorrencia) {
+        this.idTipoOcorrencia = idTipoOcorrencia;
     }
 
-    public Usuario getUsuario() {
-        return usuario;
+    public Long getIdBairro() {
+        return idBairro;
     }
 
-    public void setUsuario(Usuario usuario) {
-        this.usuario = usuario;
+    public void setIdBairro(Long idBairro) {
+        this.idBairro = idBairro;
     }
 
-    public String getObservacoes() {
-        return observacoes;
+    public String getDescricao() {
+        return descricao;
     }
 
-    public void setObservacoes(String observacoes) {
-        this.observacoes = observacoes;
+    public void setDescricao(String descricao) {
+        this.descricao = descricao;
     }
 
-    public OffsetDateTime getDataCriacao() {
-        return dataCriacao;
+    public String getEnderecoReferencia() {
+        return enderecoReferencia;
     }
 
-    public void setDataCriacao(OffsetDateTime dataCriacao) {
-        this.dataCriacao = dataCriacao;
+    public void setEnderecoReferencia(String enderecoReferencia) {
+        this.enderecoReferencia = enderecoReferencia;
     }
 
-    public int getQuantidadeApoios() {
-        return quantidadeApoios;
+    public double getLatitude() {
+        return latitude;
     }
 
-    public void setQuantidadeApoios(int quantidadeApoios) {
-        this.quantidadeApoios = quantidadeApoios;
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public String getUrlFoto() {
+        return urlFoto;
+    }
+
+    public void setUrlFoto(String urlFoto) {
+        this.urlFoto = urlFoto;
+    }
+
+    public LocalDateTime getDataRegistro() {
+        return dataRegistro;
+    }
+
+    public void setDataRegistro(LocalDateTime dataRegistro) {
+        this.dataRegistro = dataRegistro;
+    }
+
+    public int getNivelRisco() {
+        return nivelRisco;
+    }
+
+    public void setNivelRisco(int nivelRisco) {
+        this.nivelRisco = nivelRisco;
     }
 
     public StatusOcorrencia getStatus() {
@@ -125,35 +170,27 @@ public class Ocorrencia {
         this.status = status;
     }
 
-    public OffsetDateTime getDataResolucao() {
+    public LocalDateTime getDataResolucao() {
         return dataResolucao;
     }
 
-    public void setDataResolucao(OffsetDateTime dataResolucao) {
+    public void setDataResolucao(LocalDateTime dataResolucao) {
         this.dataResolucao = dataResolucao;
     }
 
-    public Double getLatitude() {
-        return latitude;
+    public int getQuantidadeApoios() {
+        return quantidadeApoios;
     }
 
-    public void setLatitude(Double latitude) {
-        this.latitude = latitude;
-    }
-
-    public Double getLongitude() {
-        return longitude;
-    }
-
-    public void setLongitude(Double longitude) {
-        this.longitude = longitude;
+    public void setQuantidadeApoios(int quantidadeApoios) {
+        this.quantidadeApoios = quantidadeApoios;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Ocorrencia outra)) return false;
-        return Objects.equals(id, outra.id);
+        return id != null && Objects.equals(id, outra.id);
     }
 
     @Override
@@ -163,8 +200,7 @@ public class Ocorrencia {
 
     @Override
     public String toString() {
-        return "Ocorrencia{id=" + id + ", bairro=" + (bairro != null ? bairro.getNome() : null)
-                + ", tipo=" + (tipo != null ? tipo.getCodigo() : null) + ", status=" + status
-                + ", apoios=" + quantidadeApoios + "}";
+        return "Ocorrencia{id=" + id + ", tipo=" + idTipoOcorrencia + ", bairro=" + idBairro
+                + ", status=" + status + ", nivelRisco=" + nivelRisco + "}";
     }
 }

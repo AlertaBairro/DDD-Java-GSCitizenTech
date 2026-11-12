@@ -1,58 +1,51 @@
 package br.com.fiap.alertabairro.model;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * Apoio de um usuario a uma ocorrencia (tabela AB_APOIO).
- * Existe no maximo um apoio por usuario por ocorrencia.
+ * Apoio ("eu tambem vi") de um morador a uma ocorrencia (tabela T_AB_APOIO).
+ * Chave composta (id_ocorrencia, id_usuario): um apoio por usuario.
  */
 public class Apoio {
 
-    private Long id;
-    private Long usuarioId;
-    private Long ocorrenciaId;
-    private OffsetDateTime dataApoio;
+    /** id_ocorrencia NUMBER(10) - PK/FK para T_AB_OCORRENCIA */
+    private Long idOcorrencia;
+    /** id_usuario NUMBER(10) - PK/FK para T_AB_USUARIO */
+    private Long idUsuario;
+    /** dt_apoio DATE */
+    private LocalDateTime dataApoio;
 
     public Apoio() {
     }
 
-    public Apoio(Long id, Long usuarioId, Long ocorrenciaId, OffsetDateTime dataApoio) {
-        this.id = id;
-        this.usuarioId = usuarioId;
-        this.ocorrenciaId = ocorrenciaId;
+    public Apoio(Long idOcorrencia, Long idUsuario, LocalDateTime dataApoio) {
+        this.idOcorrencia = idOcorrencia;
+        this.idUsuario = idUsuario;
         this.dataApoio = dataApoio;
     }
 
-    public Long getId() {
-        return id;
+    public Long getIdOcorrencia() {
+        return idOcorrencia;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setIdOcorrencia(Long idOcorrencia) {
+        this.idOcorrencia = idOcorrencia;
     }
 
-    public Long getUsuarioId() {
-        return usuarioId;
+    public Long getIdUsuario() {
+        return idUsuario;
     }
 
-    public void setUsuarioId(Long usuarioId) {
-        this.usuarioId = usuarioId;
+    public void setIdUsuario(Long idUsuario) {
+        this.idUsuario = idUsuario;
     }
 
-    public Long getOcorrenciaId() {
-        return ocorrenciaId;
-    }
-
-    public void setOcorrenciaId(Long ocorrenciaId) {
-        this.ocorrenciaId = ocorrenciaId;
-    }
-
-    public OffsetDateTime getDataApoio() {
+    public LocalDateTime getDataApoio() {
         return dataApoio;
     }
 
-    public void setDataApoio(OffsetDateTime dataApoio) {
+    public void setDataApoio(LocalDateTime dataApoio) {
         this.dataApoio = dataApoio;
     }
 
@@ -60,16 +53,16 @@ public class Apoio {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Apoio outro)) return false;
-        return Objects.equals(id, outro.id);
+        return Objects.equals(idOcorrencia, outro.idOcorrencia) && Objects.equals(idUsuario, outro.idUsuario);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(idOcorrencia, idUsuario);
     }
 
     @Override
     public String toString() {
-        return "Apoio{id=" + id + ", usuarioId=" + usuarioId + ", ocorrenciaId=" + ocorrenciaId + "}";
+        return "Apoio{ocorrencia=" + idOcorrencia + ", usuario=" + idUsuario + "}";
     }
 }
