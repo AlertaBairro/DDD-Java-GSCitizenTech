@@ -1,0 +1,30 @@
+# Build
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+.factorypath
+bin/
+out/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Variaveis de ambiente e credenciais (nunca versionar)
+.env
+.env.*
+*.env
+application-local.properties
