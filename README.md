@@ -6,9 +6,9 @@ O AlertaBairro junta a **zeladoria do bairro** (bueiros entupidos, bocas de lobo
 
 > **O modelo de dados é o mesmo da entrega de Database do grupo:** as 10 tabelas `T_AB_*` do DDL oficial, sem nenhuma alteração. A API só acrescenta sequences e dados de teste num script separado.
 
-- **Link do deploy (Render):** `https://________________.onrender.com` ← preencher
-- **Swagger:** `https://________________.onrender.com/swagger-ui.html`
-- **Health check:** `https://________________.onrender.com/api/health`
+- **Link do deploy (Render):** `https://alertabairro-api.onrender.com` ← preencher
+- **Swagger:** `https://alertabairro-api.onrender.com/swagger-ui.html`
+- **Health check:** `https://alertabairro-api.onrender.com/api/health`
 - **Repositório:** https://github.com/AlertaBairro/DDD-Java-GSCitizenTech
 
 ## Integrantes

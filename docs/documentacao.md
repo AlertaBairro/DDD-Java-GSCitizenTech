@@ -19,9 +19,9 @@
 
 **Repositório:** https://github.com/AlertaBairro/DDD-Java-GSCitizenTech
 
-**Deploy (Render):** https://________________.onrender.com
+**Deploy (Render):** https://alertabairro-api.onrender.com
 
-**Swagger:** https://________________.onrender.com/swagger-ui.html
+**Swagger:** https://alertabairro-api.onrender.com/swagger-ui.html
 
 São Paulo — novembro de 2026
 
@@ -577,7 +577,7 @@ Passo a passo:
 5. Clique em **Create Web Service** e aguarde o build.
 6. Teste `https://<serviço>.onrender.com/api/health` e `https://<serviço>.onrender.com/swagger-ui.html`.
 
-**URL do deploy:** https://________________.onrender.com
+**URL do deploy:** https://alertabairro-api.onrender.com
 
 [PRINT: painel do Render com o serviço "Live"]
 
