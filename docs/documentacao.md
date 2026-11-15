@@ -33,15 +33,19 @@ São Paulo — novembro de 2026
 
 1. Problema
 2. Solução
-3. Arquitetura em camadas
-4. Modelo de dados
-5. Regras de negócio
-6. Endpoints
-7. Tratamento de exceções
-8. Testes
-9. Deploy no Render
-10. Como executar localmente
-11. Evidências (prints)
+3. Justificativa
+4. Objetivos
+5. Arquitetura em camadas
+6. Modelo de dados
+7. Regras de negócio
+8. Protótipos de tela
+9. Endpoints
+10. Tratamento de exceções
+11. Testes
+12. Deploy no Render
+13. Ferramentas e versões
+14. Como executar localmente
+15. Evidências (prints)
 
 ---
 
@@ -63,7 +67,42 @@ O **AlertaBairro** junta **zeladoria do bairro**, **alerta de alagamento** e **r
 | **Agente de zeladoria** | Vê as ocorrências ordenadas por prioridade e muda o status, com histórico. Encerra pontos alagados. |
 | **Gestor da subprefeitura** | Vê os indicadores de pendências, tempo de resolução, bairros, tipos, alertas, taxa de leitura e reincidência. Encerra pontos alagados. |
 
-## 3. Arquitetura em camadas
+## 3. Justificativa
+
+Alagamentos são um problema recorrente na cidade de São Paulo, e boa parte deles começa em algo pequeno e evitável: um bueiro entupido, uma boca de lobo quebrada ou lixo acumulado na sarjeta. Hoje esses problemas são relatados de forma dispersa, sem indicação do que é mais urgente, e o morador só descobre que a rua alagou quando já está nela.
+
+O AlertaBairro se justifica por atacar o problema nas duas pontas:
+
+- **Antes da chuva (prevenção):** o morador registra o problema e os vizinhos apoiam a ocorrência. A API calcula um nível de risco e entrega ao agente de zeladoria uma fila **priorizada**, para que a equipe limpe primeiro o que tem mais chance de causar alagamento.
+- **Durante a chuva (proteção):** quem vê a rua alagando reporta o ponto, e a API gera um **alerta** para os moradores do bairro e permite consultar uma **rota mais segura**, que desvia dos pontos alagados ativos.
+- **Depois (gestão):** o gestor da subprefeitura passa a ter **indicadores**, como pendências, tempo médio de resolução, ocorrências por bairro e tipo, taxa de leitura dos alertas e reincidência, para decidir onde investir.
+
+Assim, a tecnologia chega a quem convive com o problema todos os dias: moradores, trabalhadores e estudantes dos bairros que alagam.
+
+**ODS conectados:**
+
+| ODS | Como o projeto contribui |
+|---|---|
+| **11 – Cidades e comunidades sustentáveis** | Dá ao cidadão um canal para participar da zeladoria do bairro e reduz o impacto dos alagamentos na mobilidade e na segurança. |
+| **13 – Ação contra a mudança global do clima** | Aumenta a capacidade de resposta a eventos de chuva intensa, com alerta e rota segura. |
+| **9 – Indústria, inovação e infraestrutura** | Usa dados para priorizar a manutenção da infraestrutura de drenagem urbana. |
+
+## 4. Objetivos
+
+**Objetivo geral:** disponibilizar uma API REST que permita registrar, priorizar e acompanhar problemas de zeladoria ligados a alagamentos, alertar os moradores quando um ponto alagar e indicar rotas mais seguras.
+
+**Objetivos específicos:**
+
+1. Permitir que o morador se cadastre, faça login e registre ocorrências de zeladoria (bueiro entupido, boca de lobo danificada, lixo e entulho) no seu bairro.
+2. Permitir que os vizinhos **apoiem** ocorrências já registradas, aumentando a prioridade delas.
+3. Calcular o **nível de risco** de cada ocorrência e oferecer ao agente de zeladoria uma **fila priorizada**.
+4. Controlar o **status** das ocorrências (aberta, em atendimento, resolvida) e guardar o **histórico** de cada mudança.
+5. Registrar **pontos alagados** e gerar **alertas** automáticos para os moradores do bairro.
+6. Avaliar rotas candidatas e indicar a **rota mais segura**, evitando os pontos alagados ativos.
+7. Oferecer ao gestor **indicadores** de pendências, tempo de resolução, reincidência e leitura dos alertas.
+8. Publicar a API na nuvem (**Render**), conectada ao **Oracle da FIAP**, com documentação no **Swagger**.
+
+## 5. Arquitetura em camadas
 
 ```
             ┌───────────────────────────────┐
@@ -102,11 +141,11 @@ O **AlertaBairro** junta **zeladoria do bairro**, **alerta de alagamento** e **r
 - ponto alagado junto com o alerta e os destinatários;
 - exclusão de ocorrência junto com os apoios e o histórico.
 
-[PRINT: estrutura de pacotes do projeto aberta no IntelliJ / VS Code]
+[PRINT: estrutura de pacotes do projeto aberta no VS Code]
 
-## 4. Modelo de dados
+## 6. Modelo de dados
 
-### 4.1 Origem do modelo e scripts
+### 6.1 Origem do modelo e scripts
 
 O modelo é o da entrega de **Database** do grupo. Os scripts estão em `src/main/resources/db/`:
 
@@ -121,7 +160,7 @@ O modelo é o da entrega de **Database** do grupo. Os scripts estão em `src/mai
 
 Ordem de execução: `01_ddl.sql`, depois `02_dml.sql`, depois `03_api_complemento.sql`. Na primeira execução, os `DROP TABLE` do início do DDL dão **ORA-00942** porque as tabelas ainda não existem. Isso é esperado e não impede a criação.
 
-### 4.2 Tabelas e classes
+### 6.2 Tabelas e classes
 
 | Tabela | Classe | Principais restrições |
 |---|---|---|
@@ -142,7 +181,7 @@ Correspondência de tipos:
 - `CHAR(1)` 'S'/'N' vira `boolean`;
 - os domínios dos CHECKs viram enums: `Zona`, `Perfil`, `StatusOcorrencia` e `NivelAgua`.
 
-### 4.3 Diagrama entidade-relacionamento
+### 6.3 Diagrama entidade-relacionamento
 
 ```mermaid
 erDiagram
@@ -255,7 +294,7 @@ erDiagram
 
 [PRINT: modelo relacional das 10 tabelas no Oracle Data Modeler ou no SQL Developer]
 
-### 4.4 Diagrama de classes (camada model)
+### 6.4 Diagrama de classes (camada model)
 
 ```mermaid
 classDiagram
@@ -384,7 +423,7 @@ classDiagram
     ConsultaRota ..> Usuario
 ```
 
-## 5. Regras de negócio
+## 7. Regras de negócio
 
 Todas as regras ficam na camada **BO**.
 
@@ -449,7 +488,29 @@ Todas as regras ficam na camada **BO**.
   - 14 notificações entregues, com taxa de leitura de 64,3%;
   - reincidência no endereço "Av. Leôncio de Magalhães, em frente à Estação Jardim São Paulo" (2 reportes) e em "Jardim São Paulo + Bueiro entupido" (2 ocorrências).
 
-## 6. Endpoints
+## 8. Protótipos de tela
+
+As telas abaixo representam o front-end que consome esta API (as mesmas telas do protótipo usado na entrega de Agile). Ao lado de cada tela estão os endpoints que ela usa.
+
+| Tela | Perfil | O que mostra | Endpoints usados |
+|---|---|---|---|
+| Login e cadastro | todos | entrar com e-mail e senha ou criar conta | `POST /api/auth/login`, `POST /api/usuarios` |
+| Registrar ocorrência | Morador | tipo do problema, bairro, endereço de referência, descrição e localização | `GET /api/tipos-ocorrencia`, `GET /api/bairros`, `POST /api/ocorrencias` |
+| Ocorrências do bairro | Morador | lista com filtros e botão de apoiar | `GET /api/ocorrencias`, `POST /api/ocorrencias/{id}/apoios` |
+| Reportar alagamento e alertas | Morador | reportar ponto alagado e ver alertas recebidos | `POST /api/pontos-alagados`, `GET /api/alertas/meus`, `PUT /api/alertas/{id}/leitura` |
+| Rota segura | Morador | rota recomendada desviando dos pontos alagados | `GET /api/zonas-de-risco`, `POST /api/rotas/avaliar` |
+| Fila priorizada | Agente | ocorrências ordenadas por risco e mudança de status | `GET /api/ocorrencias/priorizadas`, `PUT /api/ocorrencias/{id}/status` |
+| Painel de indicadores | Gestor | pendências, tempo médio, bairros, tipos e reincidência | `GET /api/indicadores` |
+
+[PRINT: protótipo da tela de login]
+
+[PRINT: protótipo da tela de registrar ocorrência]
+
+[PRINT: protótipo da tela de alertas / rota segura]
+
+[PRINT: protótipo da fila priorizada ou do painel do gestor]
+
+## 9. Endpoints
 
 | Método | Rota | Perfil | Descrição |
 |---|---|---|---|
@@ -503,7 +564,7 @@ Ao todo são 24 rotas e 31 operações: 17 GET, 6 POST, 5 PUT e 3 DELETE. Os exe
 
 [PRINT: DELETE /api/ocorrencias/{id} respondendo 204]
 
-## 7. Tratamento de exceções
+## 10. Tratamento de exceções
 
 A camada `exception` tem exceções próprias e o `GlobalExceptionHandler` (`@RestControllerAdvice`), que sempre devolve o mesmo formato JSON:
 
@@ -535,7 +596,7 @@ O `TradutorErroOracle` lê o código ORA e o nome da constraint do modelo do gru
 
 [PRINT: resposta 400 com o campo "detalhes" de validação]
 
-## 8. Testes
+## 11. Testes
 
 São **86 testes unitários** com **JUnit 5 e Mockito**. Os DAOs ficam mockados, então os testes não precisam do banco.
 
@@ -555,7 +616,7 @@ Execução: `./mvnw test`
 
 [PRINT: saída do ./mvnw test com "Tests run: 86, Failures: 0"]
 
-## 9. Deploy no Render
+## 12. Deploy no Render
 
 A aplicação é publicada no **Render** como Web Service **Docker**:
 
@@ -585,7 +646,32 @@ Passo a passo:
 
 [PRINT: GET /api/health na URL pública mostrando "banco": "UP"]
 
-## 10. Como executar localmente
+## 13. Ferramentas e versões
+
+| Ferramenta | Versão / uso |
+|---|---|
+| Java (JDK) | 21 |
+| Spring Boot | 3.3.5 (Web e Validation) |
+| Maven | Maven Wrapper (`./mvnw`); 3.9.9 na imagem Docker de build |
+| Banco de dados | Oracle Database da FIAP (`oracle.fiap.com.br:1521/ORCL`) |
+| Driver JDBC | `ojdbc11` 23.5.0.24.07 |
+| Pool de conexões | HikariCP (versão gerenciada pelo Spring Boot) |
+| Hash de senha | BCrypt (`spring-security-crypto`) |
+| Documentação da API | springdoc-openapi 2.6.0 (Swagger UI) |
+| Testes | JUnit 5, Mockito e AssertJ |
+| IDE | Visual Studio Code |
+| Cliente do banco | Oracle SQL Developer Extension for VS Code |
+| Versionamento | Git e GitHub |
+| Deploy | Docker (imagem `eclipse-temurin:21-jre-jammy`) e Render (plano Free) |
+
+**Links:**
+
+- Repositório: https://github.com/AlertaBairro/DDD-Java-GSCitizenTech
+- Deploy: https://alertabairro-api.onrender.com
+- Swagger: https://alertabairro-api.onrender.com/swagger-ui.html
+- Health check: https://alertabairro-api.onrender.com/api/health
+
+## 14. Como executar localmente
 
 1. Execute no Oracle, nesta ordem: `01_ddl.sql`, `02_dml.sql` e `03_api_complemento.sql`, da pasta `src/main/resources/db`. Se existirem tabelas `AB_*` da versão anterior, rode antes o `99_drop_esquema_antigo.sql`.
 2. Defina as variáveis `DB_URL`, `DB_USER` e `DB_PASSWORD`.
@@ -606,7 +692,7 @@ Usuários de teste:
 
 [PRINT: SELECT na T_AB_ALERTA_USUARIO depois de reportar um ponto alagado pela API]
 
-## 11. Evidências (prints)
+## 15. Evidências (prints)
 
 Lista consolidada dos prints a inserir antes de gerar o PDF:
 

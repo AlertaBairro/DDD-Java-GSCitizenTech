@@ -1,14 +1,30 @@
 # AlertaBairro API — "Informe. Previna. Desvie."
 
+## Ficha da CitizenTech
+
+| | |
+|---|---|
+| **Nome da CitizenTech** | AlertaBairro — "Informe. Previna. Desvie." |
+| **Cidade e bairro** | São Paulo (SP), bairros da Subprefeitura Santana/Tucuruvi, na zona norte: Jardim São Paulo, Santana, Tucuruvi, Parada Inglesa e Vila Mazzei |
+| **Cidadão beneficiado** | Moradores, trabalhadores e estudantes de bairros que alagam em dias de chuva forte, além dos agentes de zeladoria e do gestor da subprefeitura |
+| **Problema, em uma frase** | Bueiros entupidos e lixo viram pontos de alagamento, e o morador não tem como avisar a prefeitura antes da chuva nem saber por onde desviar quando ela chega. |
+| **Como funciona** | Antes da chuva, o morador registra bueiros, bocas de lobo e lixo, e os vizinhos apoiam as ocorrências; a zeladoria recebe uma fila priorizada pelo risco. Durante a chuva, quem vê a rua alagando reporta o ponto, o sistema gera um alerta para o bairro e indica uma rota mais segura. O gestor acompanha tudo por indicadores. |
+| **O que cada parte faz** | **Java (DDD):** API REST que guarda e serve os dados, com regras de negócio, alertas e indicadores. **Database:** modelo relacional das 10 tabelas `T_AB_*` no Oracle. **Dynamic Programming:** algoritmos de rota segura e de priorização da limpeza. **Data Science:** modelos de regressão com dados de chuva e alagamento. **Agile:** personas, backlog, protótipo e pitch. **Network:** rede do local físico da solução no Packet Tracer. **AR/VR:** vídeo 3D da solução. |
+| **Link do repositório** | https://github.com/AlertaBairro/DDD-Java-GSCitizenTech |
+| **Indicador de impacto** | Tempo médio entre o registro e a resolução das ocorrências, número de moradores alertados e taxa de leitura dos alertas, e reincidência de problemas no mesmo ponto (todos calculados pela API em `GET /api/indicadores`) |
+| **ODS conectados** | **11** – Cidades e comunidades sustentáveis (participação do cidadão na zeladoria e menos impacto dos alagamentos); **13** – Ação contra a mudança global do clima (resposta a chuvas intensas com alerta e rota segura); **9** – Indústria, inovação e infraestrutura (dados para priorizar a manutenção da drenagem urbana) |
+
+---
+
 API REST em **Java 21 + Spring Boot 3** do **AlertaBairro**, projeto da **Global Solution 2026.2 (FIAP — CitizenTech)** na disciplina **Domain Driven Design — Java**.
 
 O AlertaBairro junta a **zeladoria do bairro** (bueiros entupidos, bocas de lobo danificadas, lixo e entulho), o **alerta de alagamento** e a **rota segura** para os bairros da Subprefeitura Santana/Tucuruvi (zona norte de São Paulo).
 
 > **O modelo de dados é o mesmo da entrega de Database do grupo:** as 10 tabelas `T_AB_*` do DDL oficial, sem nenhuma alteração. A API só acrescenta sequences e dados de teste num script separado.
 
-- **Link do deploy (Render):** `https://alertabairro-api.onrender.com` ← preencher
-- **Swagger:** `https://alertabairro-api.onrender.com/swagger-ui.html`
-- **Health check:** `https://alertabairro-api.onrender.com/api/health`
+- **Link do deploy (Render):** https://alertabairro-api.onrender.com
+- **Swagger:** https://alertabairro-api.onrender.com/swagger-ui.html
+- **Health check:** https://alertabairro-api.onrender.com/api/health
 - **Repositório:** https://github.com/AlertaBairro/DDD-Java-GSCitizenTech
 
 ## Integrantes
