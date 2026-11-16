@@ -99,10 +99,11 @@ public class IndicadorDAO {
 
     public TotaisAlertas totaisAlertas() {
         String sql = "SELECT (SELECT COUNT(*) FROM T_AB_ALERTA) AS alertas, "
-                + "COUNT(*) AS destinatarios, "
+                + "au.destinatarios, au.usuarios, au.lidos "
+                + "FROM (SELECT COUNT(*) AS destinatarios, "
                 + "COUNT(DISTINCT id_usuario) AS usuarios, "
                 + "COUNT(dt_leitura) AS lidos "
-                + "FROM T_AB_ALERTA_USUARIO";
+                + "FROM T_AB_ALERTA_USUARIO) au";
         return consultar(sql, rs -> new TotaisAlertas(rs.getLong("alertas"), rs.getLong("destinatarios"),
                 rs.getLong("usuarios"), rs.getLong("lidos")), "calcular totais de alertas").get(0);
     }
