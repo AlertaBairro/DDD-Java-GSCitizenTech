@@ -141,7 +141,7 @@ Assim, a tecnologia chega a quem convive com o problema todos os dias: moradores
 - ponto alagado junto com o alerta e os destinatários;
 - exclusão de ocorrência junto com os apoios e o histórico.
 
-[PRINT: estrutura de pacotes do projeto aberta no VS Code]
+<figure><img src="prints/01-estrutura-pacotes.png" alt="Estrutura de pacotes do projeto no VS Code"><figcaption>Figura 1 — Estrutura de pacotes do projeto no VS Code</figcaption></figure>
 
 ## 6. Modelo de dados
 
@@ -183,245 +183,15 @@ Correspondência de tipos:
 
 ### 6.3 Diagrama entidade-relacionamento
 
-```mermaid
-erDiagram
-    T_AB_BAIRRO ||--o{ T_AB_USUARIO : "mora"
-    T_AB_BAIRRO ||--o{ T_AB_OCORRENCIA : "localiza"
-    T_AB_BAIRRO ||--o{ T_AB_PONTO_ALAGADO : "localiza"
-    T_AB_TIPO_OCORRENCIA ||--o{ T_AB_OCORRENCIA : "classifica"
-    T_AB_USUARIO ||--o{ T_AB_OCORRENCIA : "registra"
-    T_AB_USUARIO ||--o{ T_AB_APOIO : "apoia"
-    T_AB_OCORRENCIA ||--o{ T_AB_APOIO : "recebe"
-    T_AB_OCORRENCIA ||--o{ T_AB_HISTORICO_STATUS : "tem"
-    T_AB_USUARIO ||--o{ T_AB_HISTORICO_STATUS : "altera"
-    T_AB_USUARIO ||--o{ T_AB_PONTO_ALAGADO : "reporta"
-    T_AB_PONTO_ALAGADO ||--o{ T_AB_ALERTA : "gera"
-    T_AB_ALERTA ||--o{ T_AB_ALERTA_USUARIO : "enviado a"
-    T_AB_USUARIO ||--o{ T_AB_ALERTA_USUARIO : "recebe"
-    T_AB_USUARIO ||--o{ T_AB_CONSULTA_ROTA : "consulta"
+<figure><img src="prints/03-der.png" alt="Diagrama entidade-relacionamento (DER) das 10 tabelas do modelo do grupo"><figcaption>Figura 3 — Diagrama entidade-relacionamento (DER) das 10 tabelas do modelo do grupo</figcaption></figure>
 
-    T_AB_BAIRRO {
-        NUMBER id_bairro PK
-        VARCHAR2 nm_bairro UK
-        VARCHAR2 nm_zona
-        VARCHAR2 nm_subprefeitura
-    }
-    T_AB_USUARIO {
-        NUMBER id_usuario PK
-        NUMBER id_bairro FK
-        VARCHAR2 nm_usuario
-        VARCHAR2 ds_email UK
-        VARCHAR2 ds_senha_hash
-        VARCHAR2 nr_telefone
-        VARCHAR2 tp_perfil
-        DATE dt_cadastro
-        CHAR st_ativo
-    }
-    T_AB_TIPO_OCORRENCIA {
-        NUMBER id_tipo_ocorrencia PK
-        VARCHAR2 nm_tipo UK
-        VARCHAR2 ds_tipo
-        NUMBER nr_peso_risco
-    }
-    T_AB_OCORRENCIA {
-        NUMBER id_ocorrencia PK
-        NUMBER id_usuario FK
-        NUMBER id_tipo_ocorrencia FK
-        NUMBER id_bairro FK
-        VARCHAR2 ds_ocorrencia
-        VARCHAR2 ds_endereco_ref
-        NUMBER nr_latitude
-        NUMBER nr_longitude
-        VARCHAR2 ds_url_foto
-        DATE dt_registro
-        NUMBER nr_nivel_risco
-        VARCHAR2 st_ocorrencia
-        DATE dt_resolucao
-    }
-    T_AB_APOIO {
-        NUMBER id_ocorrencia PK,FK
-        NUMBER id_usuario PK,FK
-        DATE dt_apoio
-    }
-    T_AB_HISTORICO_STATUS {
-        NUMBER id_historico PK
-        NUMBER id_ocorrencia FK
-        NUMBER id_usuario FK
-        VARCHAR2 st_anterior
-        VARCHAR2 st_novo
-        DATE dt_alteracao
-        VARCHAR2 ds_observacao
-    }
-    T_AB_PONTO_ALAGADO {
-        NUMBER id_ponto_alagado PK
-        NUMBER id_usuario FK
-        NUMBER id_bairro FK
-        VARCHAR2 ds_endereco_ref
-        NUMBER nr_latitude
-        NUMBER nr_longitude
-        VARCHAR2 tp_nivel_agua
-        DATE dt_reporte
-        CHAR st_ativo
-        DATE dt_encerramento
-    }
-    T_AB_ALERTA {
-        NUMBER id_alerta PK
-        NUMBER id_ponto_alagado FK
-        VARCHAR2 ds_mensagem
-        NUMBER nr_raio_metros
-        DATE dt_envio
-    }
-    T_AB_ALERTA_USUARIO {
-        NUMBER id_alerta PK,FK
-        NUMBER id_usuario PK,FK
-        DATE dt_recebimento
-        DATE dt_leitura
-    }
-    T_AB_CONSULTA_ROTA {
-        NUMBER id_consulta_rota PK
-        NUMBER id_usuario FK
-        VARCHAR2 ds_origem
-        NUMBER nr_lat_origem
-        NUMBER nr_long_origem
-        VARCHAR2 ds_destino
-        NUMBER nr_lat_destino
-        NUMBER nr_long_destino
-        DATE dt_consulta
-        CHAR st_rota_calculada
-        NUMBER nr_pontos_evitados
-    }
-```
-
-[PRINT: modelo relacional das 10 tabelas no Oracle Data Modeler ou no SQL Developer]
+O código-fonte Mermaid do diagrama está em `docs/diagramas/der.mmd`.
 
 ### 6.4 Diagrama de classes (camada model)
 
-```mermaid
-classDiagram
-    class Bairro {
-        -Long id
-        -String nome
-        -Zona zona
-        -String subprefeitura
-    }
-    class Usuario {
-        -Long id
-        -Long idBairro
-        -String nome
-        -String email
-        -String senhaHash
-        -String telefone
-        -Perfil perfil
-        -LocalDateTime dataCadastro
-        -boolean ativo
-        +temPerfil(Perfil) boolean
-    }
-    class TipoOcorrencia {
-        -Long id
-        -String nome
-        -String descricao
-        -int pesoRisco
-    }
-    class Ocorrencia {
-        -Long id
-        -Long idUsuario
-        -Long idTipoOcorrencia
-        -Long idBairro
-        -String descricao
-        -String enderecoReferencia
-        -double latitude
-        -double longitude
-        -String urlFoto
-        -LocalDateTime dataRegistro
-        -int nivelRisco
-        -StatusOcorrencia status
-        -LocalDateTime dataResolucao
-        -int quantidadeApoios
-        +isAberta() boolean
-        +isResolvida() boolean
-        +foiRegistradaPor(Long) boolean
-        +alterarStatus(StatusOcorrencia, LocalDateTime)
-    }
-    class Apoio {
-        -Long idOcorrencia
-        -Long idUsuario
-        -LocalDateTime dataApoio
-    }
-    class HistoricoStatus {
-        -Long id
-        -Long idOcorrencia
-        -Long idUsuario
-        -StatusOcorrencia statusAnterior
-        -StatusOcorrencia statusNovo
-        -LocalDateTime dataAlteracao
-        -String observacao
-    }
-    class PontoAlagado {
-        -Long id
-        -Long idUsuario
-        -Long idBairro
-        -String enderecoReferencia
-        -double latitude
-        -double longitude
-        -NivelAgua nivelAgua
-        -LocalDateTime dataReporte
-        -boolean ativo
-        -LocalDateTime dataEncerramento
-        +encerrar(LocalDateTime)
-    }
-    class Alerta {
-        -Long id
-        -Long idPontoAlagado
-        -String mensagem
-        -int raioMetros
-        -LocalDateTime dataEnvio
-    }
-    class AlertaUsuario {
-        -Long idAlerta
-        -Long idUsuario
-        -LocalDateTime dataRecebimento
-        -LocalDateTime dataLeitura
-        +isLido() boolean
-        +marcarComoLido(LocalDateTime)
-    }
-    class ConsultaRota {
-        -Long id
-        -Long idUsuario
-        -String origem
-        -String destino
-        -LocalDateTime dataConsulta
-        -boolean rotaCalculada
-        -int pontosEvitados
-    }
-    class NivelAgua {
-        <<enumeration>>
-        TORNOZELO 300m
-        JOELHO 500m
-        CINTURA 600m
-        INTRANSITAVEL 800m
-    }
-    class StatusOcorrencia {
-        <<enumeration>>
-        ABERTA
-        RECEBIDA
-        EM_ATENDIMENTO
-        RESOLVIDA
-    }
-    Usuario ..> Bairro
-    Ocorrencia ..> Usuario
-    Ocorrencia ..> TipoOcorrencia
-    Ocorrencia ..> Bairro
-    Ocorrencia --> StatusOcorrencia
-    Apoio ..> Ocorrencia
-    Apoio ..> Usuario
-    HistoricoStatus ..> Ocorrencia
-    PontoAlagado --> NivelAgua
-    PontoAlagado ..> Bairro
-    Alerta ..> PontoAlagado
-    AlertaUsuario ..> Alerta
-    AlertaUsuario ..> Usuario
-    ConsultaRota ..> Usuario
-```
+<figure><img src="prints/04-diagrama-classes.png" alt="Diagrama de classes da camada model"><figcaption>Figura 2 — Diagrama de classes da camada model</figcaption></figure>
+
+O código-fonte Mermaid do diagrama está em `docs/diagramas/classes.mmd`.
 
 ## 7. Regras de negócio
 
@@ -490,25 +260,28 @@ Todas as regras ficam na camada **BO**.
 
 ## 8. Protótipos de tela
 
-As telas abaixo representam o front-end que consome esta API (as mesmas telas do protótipo usado na entrega de Agile). Ao lado de cada tela estão os endpoints que ela usa.
+O protótipo do grupo é uma aplicação HTML navegável, com login por perfil (morador, agente de zeladoria e gestor). Ele funciona sem backend: os dados ficam no navegador. A tabela mostra cada tela e os endpoints da API que ela consumiria numa integração.
 
-| Tela | Perfil | O que mostra | Endpoints usados |
+| Tela | Perfil | O que mostra | Endpoints correspondentes |
 |---|---|---|---|
-| Login e cadastro | todos | entrar com e-mail e senha ou criar conta | `POST /api/auth/login`, `POST /api/usuarios` |
-| Registrar ocorrência | Morador | tipo do problema, bairro, endereço de referência, descrição e localização | `GET /api/tipos-ocorrencia`, `GET /api/bairros`, `POST /api/ocorrencias` |
-| Ocorrências do bairro | Morador | lista com filtros e botão de apoiar | `GET /api/ocorrencias`, `POST /api/ocorrencias/{id}/apoios` |
-| Reportar alagamento e alertas | Morador | reportar ponto alagado e ver alertas recebidos | `POST /api/pontos-alagados`, `GET /api/alertas/meus`, `PUT /api/alertas/{id}/leitura` |
-| Rota segura | Morador | rota recomendada desviando dos pontos alagados | `GET /api/zonas-de-risco`, `POST /api/rotas/avaliar` |
-| Fila priorizada | Agente | ocorrências ordenadas por risco e mudança de status | `GET /api/ocorrencias/priorizadas`, `PUT /api/ocorrencias/{id}/status` |
-| Painel de indicadores | Gestor | pendências, tempo médio, bairros, tipos e reincidência | `GET /api/indicadores` |
+| Login | todos | e-mail, senha e escolha do perfil | `POST /api/auth/login` |
+| Área do morador | Morador | alerta de alagamento ativo, filtros por bairro e problema, ocorrências com botão de apoiar | `GET /api/alertas/meus`, `GET /api/ocorrencias`, `POST /api/ocorrencias/{id}/apoios` |
+| Registrar ocorrência | Morador | bairro, problema e observações (data e hora automáticas) | `GET /api/bairros`, `GET /api/tipos-ocorrencia`, `POST /api/ocorrencias` |
+| Mapa e rota segura | Morador | mapa com pontos alagados e área de risco, rota segura × rota padrão | `GET /api/zonas-de-risco`, `POST /api/rotas/avaliar` |
+| Painel da zeladoria | Agente | ocorrências ordenadas por risco e troca de status | `GET /api/ocorrencias/priorizadas`, `PUT /api/ocorrencias/{id}/status` |
+| Indicadores de impacto | Gestor | totais, tempo médio, ocorrências por bairro e por problema, reincidência | `GET /api/indicadores` |
 
-[PRINT: protótipo da tela de login]
+<figure><img src="prints/prototipo-01-login.png" alt="Protótipo: login com escolha de perfil"><figcaption>Figura 4 — Protótipo: login com escolha de perfil</figcaption></figure>
 
-[PRINT: protótipo da tela de registrar ocorrência]
+<figure><img src="prints/prototipo-02-morador.png" alt="Protótipo: área do morador, com alerta de alagamento e ocorrências do bairro"><figcaption>Figura 5 — Protótipo: área do morador, com alerta de alagamento e ocorrências do bairro</figcaption></figure>
 
-[PRINT: protótipo da tela de alertas / rota segura]
+<figure><img src="prints/prototipo-03-registrar.png" alt="Protótipo: registrar ocorrência"><figcaption>Figura 6 — Protótipo: registrar ocorrência</figcaption></figure>
 
-[PRINT: protótipo da fila priorizada ou do painel do gestor]
+<figure><img src="prints/prototipo-06-mapa-rota.png" alt="Protótipo: mapa com o ponto alagado e a rota segura desviando da área de risco"><figcaption>Figura 7 — Protótipo: mapa com o ponto alagado e a rota segura desviando da área de risco</figcaption></figure>
+
+<figure><img src="prints/prototipo-04-agente.png" alt="Protótipo: painel da zeladoria (agente), com ocorrências ordenadas por risco"><figcaption>Figura 8 — Protótipo: painel da zeladoria (agente), com ocorrências ordenadas por risco</figcaption></figure>
+
+<figure><img src="prints/prototipo-05-gestor.png" alt="Protótipo: indicadores de impacto (gestor)"><figcaption>Figura 9 — Protótipo: indicadores de impacto (gestor)</figcaption></figure>
 
 ## 9. Endpoints
 
@@ -542,27 +315,33 @@ As telas abaixo representam o front-end que consome esta API (as mesmas telas do
 
 Ao todo são 24 rotas e 31 operações: 17 GET, 6 POST, 5 PUT e 3 DELETE. Os exemplos completos estão no `README.md` e no `requests.http`.
 
-[PRINT: Swagger UI no Render com a lista de endpoints]
+### Testes dos endpoints na API publicada
 
-[PRINT: POST /api/usuarios respondendo 201]
+Os prints abaixo foram feitos no Swagger da API publicada no Render, conectada ao Oracle da FIAP. Usuários: morador de teste (id 11), agente (id 12), gestor (id 13) e a moradora Joana Teste (id 14), cadastrada no próprio teste.
 
-[PRINT: POST /api/auth/login respondendo 200]
+<figure><img src="prints/05-swagger.png" alt="Swagger UI da API publicada no Render"><figcaption>Figura 10 — Swagger UI da API publicada no Render</figcaption></figure>
 
-[PRINT: POST /api/ocorrencias respondendo 201 com status ABERTA]
+<figure><img src="prints/06-cadastro.png" alt="POST /api/usuarios: cadastro respondendo 201, sem devolver a senha"><figcaption>Figura 11 — POST /api/usuarios: cadastro respondendo 201, sem devolver a senha</figcaption></figure>
 
-[PRINT: GET /api/ocorrencias/priorizadas com o agente, mostrando pontuação e nível]
+<figure><img src="prints/07-login.png" alt="POST /api/auth/login: login do morador respondendo 200 com o id para o header X-Usuario-Id"><figcaption>Figura 12 — POST /api/auth/login: login do morador respondendo 200 com o id para o header X-Usuario-Id</figcaption></figure>
 
-[PRINT: PUT /api/ocorrencias/{id}/status e GET /api/ocorrencias/{id}/historico]
+<figure><img src="prints/08-registrar-ocorrencia.png" alt="POST /api/ocorrencias: ocorrência 10 criada com status ABERTA"><figcaption>Figura 13 — POST /api/ocorrencias: ocorrência 10 criada com status ABERTA</figcaption></figure>
 
-[PRINT: POST /api/pontos-alagados com o alerta gerado e usuariosNotificados]
+<figure><img src="prints/10-status.png" alt="PUT /api/ocorrencias/10/status: agente muda o status para EM_ATENDIMENTO"><figcaption>Figura 14 — PUT /api/ocorrencias/10/status: agente muda o status para EM_ATENDIMENTO</figcaption></figure>
 
-[PRINT: GET /api/alertas/meus e PUT /api/alertas/{id}/leitura]
+<figure><img src="prints/10b-historico.png" alt="GET /api/ocorrencias/10/historico: histórico ABERTA → EM_ATENDIMENTO gravado pelo agente"><figcaption>Figura 15 — GET /api/ocorrencias/10/historico: histórico ABERTA → EM_ATENDIMENTO gravado pelo agente</figcaption></figure>
 
-[PRINT: POST /api/rotas/avaliar indicando a rota mais segura e pontosEvitados]
+<figure><img src="prints/11b-usuarios-notificados.png" alt="POST /api/pontos-alagados: ponto 7 criado, alerta 7 gerado e 6 usuários notificados"><figcaption>Figura 16 — POST /api/pontos-alagados: ponto 7 criado, alerta 7 gerado e 6 usuários notificados</figcaption></figure>
 
-[PRINT: GET /api/indicadores com o gestor]
+<figure><img src="prints/12a-meus-alertas.png" alt="GET /api/alertas/meus: a moradora recebe o alerta 7, ainda não lido"><figcaption>Figura 17 — GET /api/alertas/meus: a moradora recebe o alerta 7, ainda não lido</figcaption></figure>
 
-[PRINT: DELETE /api/ocorrencias/{id} respondendo 204]
+<figure><img src="prints/12b-alerta-lido.png" alt="PUT /api/alertas/7/leitura: alerta marcado como lido, com data de leitura"><figcaption>Figura 18 — PUT /api/alertas/7/leitura: alerta marcado como lido, com data de leitura</figcaption></figure>
+
+<figure><img src="prints/13-rota-segura.png" alt="POST /api/rotas/avaliar: a rota "Direta" atravessa o ponto 7 e a rota "Desvio" é a mais segura"><figcaption>Figura 19 — POST /api/rotas/avaliar: a rota "Direta" atravessa o ponto 7 e a rota "Desvio" é a mais segura</figcaption></figure>
+
+<figure><img src="prints/14-indicadores.png" alt="GET /api/indicadores: painel do gestor com totais, tempo médio e resumo por bairro"><figcaption>Figura 20 — GET /api/indicadores: painel do gestor com totais, tempo médio e resumo por bairro</figcaption></figure>
+
+<figure><img src="prints/15-delete.png" alt="DELETE /api/ocorrencias/11: exclusão respondendo 204"><figcaption>Figura 21 — DELETE /api/ocorrencias/11: exclusão respondendo 204</figcaption></figure>
 
 ## 10. Tratamento de exceções
 
@@ -590,11 +369,11 @@ A camada `exception` tem exceções próprias e o `GlobalExceptionHandler` (`@Re
 
 O `TradutorErroOracle` lê o código ORA e o nome da constraint do modelo do grupo e devolve uma mensagem clara. Por exemplo, `UK_AB_USUARIO_EMAIL` vira "Já existe um usuário cadastrado com este e-mail.". Assim, uma violação de constraint vira 409 ou 422, e não 500.
 
-[PRINT: resposta 409 ao apoiar a mesma ocorrência duas vezes]
+<figure><img src="prints/erro-409.png" alt="Erro 409: apoio duplicado na mesma ocorrência"><figcaption>Figura 22 — Erro 409: apoio duplicado na mesma ocorrência</figcaption></figure>
 
-[PRINT: resposta 422 ao tentar voltar uma ocorrência para ABERTA]
+<figure><img src="prints/erro-422.png" alt="Erro 422: regra de negócio impede voltar a ocorrência para ABERTA"><figcaption>Figura 23 — Erro 422: regra de negócio impede voltar a ocorrência para ABERTA</figcaption></figure>
 
-[PRINT: resposta 400 com o campo "detalhes" de validação]
+<figure><img src="prints/erro-400.png" alt="Erro 400: validação lista os campos obrigatórios em "detalhes""><figcaption>Figura 24 — Erro 400: validação lista os campos obrigatórios em "detalhes"</figcaption></figure>
 
 ## 11. Testes
 
@@ -614,7 +393,9 @@ São **86 testes unitários** com **JUnit 5 e Mockito**. Os DAOs ficam mockados,
 
 Execução: `./mvnw test`
 
-[PRINT: saída do ./mvnw test com "Tests run: 86, Failures: 0"]
+<figure><img src="prints/02-testes.png" alt="Saída do ./mvnw test: 86 testes, 0 falhas, BUILD SUCCESS"><figcaption>Figura 25 — Saída do ./mvnw test: 86 testes, 0 falhas, BUILD SUCCESS</figcaption></figure>
+
+**Teste integrado com o Oracle:** os testes unitários usam DAOs simulados e não executam o SQL. Ao testar a API publicada, o endpoint `GET /api/indicadores` devolveu erro 500. A causa era o erro **ORA-00937** ("not a single-group group function") na consulta de totais de alertas do `IndicadorDAO`, que misturava uma subconsulta com funções de agregação sem `GROUP BY`. A consulta foi reescrita com as contagens numa subconsulta, validada no Oracle e publicada (commit `63782bb`). A Figura do painel de indicadores mostra o endpoint funcionando depois da correção.
 
 ## 12. Deploy no Render
 
@@ -640,11 +421,11 @@ Passo a passo:
 
 **URL do deploy:** https://alertabairro-api.onrender.com
 
-[PRINT: painel do Render com o serviço "Live"]
+<figure><img src="prints/render-live.png" alt="Render: serviço alertabairro-api Live, com o histórico de deploys"><figcaption>Figura 26 — Render: serviço alertabairro-api Live, com o histórico de deploys</figcaption></figure>
 
-[PRINT: variáveis de ambiente cadastradas no Render (com a senha oculta)]
+<figure><img src="prints/render-variaveis.png" alt="Render: variáveis de ambiente cadastradas, com os valores ocultos"><figcaption>Figura 27 — Render: variáveis de ambiente cadastradas, com os valores ocultos</figcaption></figure>
 
-[PRINT: GET /api/health na URL pública mostrando "banco": "UP"]
+<figure><img src="prints/render-health.png" alt="GET /api/health na URL pública: API e banco UP"><figcaption>Figura 28 — GET /api/health na URL pública: API e banco UP</figcaption></figure>
 
 ## 13. Ferramentas e versões
 
@@ -686,21 +467,18 @@ Usuários de teste:
 | AGENTE | agente@alertabairro.com | agente123 |
 | GESTOR | gestor@alertabairro.com | gestor123 |
 
-[PRINT: tabelas T_AB_ e sequences SQ_AB_ criadas no SQL Developer]
+<figure><img src="prints/oracle-historico.png" alt="Oracle FIAP: as 10 tabelas T_AB_ e o SELECT na T_AB_HISTORICO_STATUS com a mudança feita pela API"><figcaption>Figura 29 — Oracle FIAP: as 10 tabelas T_AB_ e o SELECT na T_AB_HISTORICO_STATUS com a mudança feita pela API</figcaption></figure>
 
-[PRINT: SELECT na T_AB_HISTORICO_STATUS depois de uma mudança de status pela API]
+<figure><img src="prints/oracle-alerta-usuario.png" alt="Oracle FIAP: os 6 destinatários do alerta 7 e a leitura gravada para a usuária 14"><figcaption>Figura 30 — Oracle FIAP: os 6 destinatários do alerta 7 e a leitura gravada para a usuária 14</figcaption></figure>
 
-[PRINT: SELECT na T_AB_ALERTA_USUARIO depois de reportar um ponto alagado pela API]
+## 15. Evidências
 
-## 15. Evidências (prints)
-
-Lista consolidada dos prints a inserir antes de gerar o PDF:
-
-- [PRINT: estrutura de pacotes do projeto]
-- [PRINT: modelo relacional das 10 tabelas]
-- [PRINT: tabelas T_AB_, sequences e dados no SQL Developer]
-- [PRINT: Swagger UI no Render]
-- [PRINT: cadastro, login, registro, priorizadas, status + histórico, ponto alagado, alertas, rota e indicadores]
-- [PRINT: respostas de erro 400, 409 e 422]
-- [PRINT: ./mvnw test com 86 testes passando]
-- [PRINT: serviço "Live" no Render, variáveis de ambiente e /api/health com banco UP]
+| Requisito da disciplina | Onde está a evidência |
+|---|---|
+| Camada model de acordo com o banco | seção 6 (tabelas × classes, DER e diagrama de classes) |
+| Camadas DAO e BO | seção 5 (arquitetura) e seção 7 (regras de negócio) |
+| Controller com GET, POST, PUT e DELETE | seção 9 (cadastro, login, registro, status, histórico, ponto alagado, alertas, rota, indicadores e exclusão) |
+| Tratamento de exceções | seção 10 (erros 400, 409 e 422 com JSON padronizado) |
+| Deploy no Render | seção 12 (serviço Live, variáveis e health check com banco UP) |
+| Protótipos, endpoints e DER | seções 8, 9 e 6.3 |
+| Ferramentas, versões, links e execução | seções 13 e 14 |

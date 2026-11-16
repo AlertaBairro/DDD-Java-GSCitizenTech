@@ -1,0 +1,155 @@
+classDiagram
+    class Bairro {
+        -Long id
+        -String nome
+        -Zona zona
+        -String subprefeitura
+    }
+    class Usuario {
+        -Long id
+        -Long idBairro
+        -String nome
+        -String email
+        -String senhaHash
+        -String telefone
+        -Perfil perfil
+        -LocalDateTime dataCadastro
+        -boolean ativo
+        +temPerfil(Perfil) boolean
+    }
+    class TipoOcorrencia {
+        -Long id
+        -String nome
+        -String descricao
+        -int pesoRisco
+    }
+    class Ocorrencia {
+        -Long id
+        -Long idUsuario
+        -Long idTipoOcorrencia
+        -Long idBairro
+        -String descricao
+        -String enderecoReferencia
+        -double latitude
+        -double longitude
+        -String urlFoto
+        -LocalDateTime dataRegistro
+        -int nivelRisco
+        -StatusOcorrencia status
+        -LocalDateTime dataResolucao
+        -int quantidadeApoios
+        +isAberta() boolean
+        +isResolvida() boolean
+        +foiRegistradaPor(Long) boolean
+        +alterarStatus(StatusOcorrencia, LocalDateTime)
+    }
+    class Apoio {
+        -Long idOcorrencia
+        -Long idUsuario
+        -LocalDateTime dataApoio
+    }
+    class HistoricoStatus {
+        -Long id
+        -Long idOcorrencia
+        -Long idUsuario
+        -StatusOcorrencia statusAnterior
+        -StatusOcorrencia statusNovo
+        -LocalDateTime dataAlteracao
+        -String observacao
+    }
+    class PontoAlagado {
+        -Long id
+        -Long idUsuario
+        -Long idBairro
+        -String enderecoReferencia
+        -double latitude
+        -double longitude
+        -NivelAgua nivelAgua
+        -LocalDateTime dataReporte
+        -boolean ativo
+        -LocalDateTime dataEncerramento
+        +encerrar(LocalDateTime)
+    }
+    class Alerta {
+        -Long id
+        -Long idPontoAlagado
+        -String mensagem
+        -int raioMetros
+        -LocalDateTime dataEnvio
+    }
+    class AlertaUsuario {
+        -Long idAlerta
+        -Long idUsuario
+        -LocalDateTime dataRecebimento
+        -LocalDateTime dataLeitura
+        +isLido() boolean
+        +marcarComoLido(LocalDateTime)
+    }
+    class ConsultaRota {
+        -Long id
+        -Long idUsuario
+        -String origem
+        -String destino
+        -LocalDateTime dataConsulta
+        -boolean rotaCalculada
+        -int pontosEvitados
+    }
+    class NivelAgua {
+        <<enumeration>>
+        TORNOZELO 300m
+        JOELHO 500m
+        CINTURA 600m
+        INTRANSITAVEL 800m
+    }
+    class StatusOcorrencia {
+        <<enumeration>>
+        ABERTA
+        RECEBIDA
+        EM_ATENDIMENTO
+        RESOLVIDA
+    }
+    Usuario ..> Bairro
+    Ocorrencia ..> Usuario
+    Ocorrencia ..> TipoOcorrencia
+    Ocorrencia ..> Bairro
+    Ocorrencia --> StatusOcorrencia
+    Apoio ..> Ocorrencia
+    Apoio ..> Usuario
+    HistoricoStatus ..> Ocorrencia
+    PontoAlagado --> NivelAgua
+    PontoAlagado ..> Bairro
+    Alerta ..> PontoAlagado
+    AlertaUsuario ..> Alerta
+    AlertaUsuario ..> Usuario
+    ConsultaRota ..> Usuario
+    class Perfil {
+        <<enumeration>>
+        MORADOR
+        AGENTE
+        GESTOR
+    }
+    class Zona {
+        <<enumeration>>
+        NORTE
+        SUL
+        LESTE
+        OESTE
+        CENTRO
+    }
+    class NivelRisco {
+        <<enumeration>>
+        BAIXO
+        MEDIO
+        ALTO
+    }
+    class AvaliacaoRisco {
+        -double pontuacao
+        -NivelRisco nivel
+        -String rotulo
+        +getPontuacao() double
+        +getNivel() NivelRisco
+        +getRotulo() String
+    }
+    Usuario --> Perfil
+    Bairro --> Zona
+    AvaliacaoRisco --> NivelRisco

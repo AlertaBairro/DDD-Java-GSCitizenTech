@@ -1,0 +1,106 @@
+erDiagram
+    T_AB_BAIRRO ||--o{ T_AB_USUARIO : "mora"
+    T_AB_BAIRRO ||--o{ T_AB_OCORRENCIA : "localiza"
+    T_AB_BAIRRO ||--o{ T_AB_PONTO_ALAGADO : "localiza"
+    T_AB_TIPO_OCORRENCIA ||--o{ T_AB_OCORRENCIA : "classifica"
+    T_AB_USUARIO ||--o{ T_AB_OCORRENCIA : "registra"
+    T_AB_USUARIO ||--o{ T_AB_APOIO : "apoia"
+    T_AB_OCORRENCIA ||--o{ T_AB_APOIO : "recebe"
+    T_AB_OCORRENCIA ||--o{ T_AB_HISTORICO_STATUS : "tem"
+    T_AB_USUARIO ||--o{ T_AB_HISTORICO_STATUS : "altera"
+    T_AB_USUARIO ||--o{ T_AB_PONTO_ALAGADO : "reporta"
+    T_AB_PONTO_ALAGADO ||--o{ T_AB_ALERTA : "gera"
+    T_AB_ALERTA ||--o{ T_AB_ALERTA_USUARIO : "enviado a"
+    T_AB_USUARIO ||--o{ T_AB_ALERTA_USUARIO : "recebe"
+    T_AB_USUARIO ||--o{ T_AB_CONSULTA_ROTA : "consulta"
+
+    T_AB_BAIRRO {
+        NUMBER id_bairro PK
+        VARCHAR2 nm_bairro UK
+        VARCHAR2 nm_zona
+        VARCHAR2 nm_subprefeitura
+    }
+    T_AB_USUARIO {
+        NUMBER id_usuario PK
+        NUMBER id_bairro FK
+        VARCHAR2 nm_usuario
+        VARCHAR2 ds_email UK
+        VARCHAR2 ds_senha_hash
+        VARCHAR2 nr_telefone
+        VARCHAR2 tp_perfil
+        DATE dt_cadastro
+        CHAR st_ativo
+    }
+    T_AB_TIPO_OCORRENCIA {
+        NUMBER id_tipo_ocorrencia PK
+        VARCHAR2 nm_tipo UK
+        VARCHAR2 ds_tipo
+        NUMBER nr_peso_risco
+    }
+    T_AB_OCORRENCIA {
+        NUMBER id_ocorrencia PK
+        NUMBER id_usuario FK
+        NUMBER id_tipo_ocorrencia FK
+        NUMBER id_bairro FK
+        VARCHAR2 ds_ocorrencia
+        VARCHAR2 ds_endereco_ref
+        NUMBER nr_latitude
+        NUMBER nr_longitude
+        VARCHAR2 ds_url_foto
+        DATE dt_registro
+        NUMBER nr_nivel_risco
+        VARCHAR2 st_ocorrencia
+        DATE dt_resolucao
+    }
+    T_AB_APOIO {
+        NUMBER id_ocorrencia PK,FK
+        NUMBER id_usuario PK,FK
+        DATE dt_apoio
+    }
+    T_AB_HISTORICO_STATUS {
+        NUMBER id_historico PK
+        NUMBER id_ocorrencia FK
+        NUMBER id_usuario FK
+        VARCHAR2 st_anterior
+        VARCHAR2 st_novo
+        DATE dt_alteracao
+        VARCHAR2 ds_observacao
+    }
+    T_AB_PONTO_ALAGADO {
+        NUMBER id_ponto_alagado PK
+        NUMBER id_usuario FK
+        NUMBER id_bairro FK
+        VARCHAR2 ds_endereco_ref
+        NUMBER nr_latitude
+        NUMBER nr_longitude
+        VARCHAR2 tp_nivel_agua
+        DATE dt_reporte
+        CHAR st_ativo
+        DATE dt_encerramento
+    }
+    T_AB_ALERTA {
+        NUMBER id_alerta PK
+        NUMBER id_ponto_alagado FK
+        VARCHAR2 ds_mensagem
+        NUMBER nr_raio_metros
+        DATE dt_envio
+    }
+    T_AB_ALERTA_USUARIO {
+        NUMBER id_alerta PK,FK
+        NUMBER id_usuario PK,FK
+        DATE dt_recebimento
+        DATE dt_leitura
+    }
+    T_AB_CONSULTA_ROTA {
+        NUMBER id_consulta_rota PK
+        NUMBER id_usuario FK
+        VARCHAR2 ds_origem
+        NUMBER nr_lat_origem
+        NUMBER nr_long_origem
+        VARCHAR2 ds_destino
+        NUMBER nr_lat_destino
+        NUMBER nr_long_destino
+        DATE dt_consulta
+        CHAR st_rota_calculada
+        NUMBER nr_pontos_evitados
+    }
